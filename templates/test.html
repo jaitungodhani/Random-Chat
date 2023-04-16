@@ -1,0 +1,16 @@
+Waiter
+
+<script>
+    let socket = new WebSocket('ws://127.0.0.1:7777/ws/chat/7_1/?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNjgxNjQ4MjYwLCJpYXQiOjE2ODE2NDc5NjAsImp0aSI6IjdkM2QzZTYyNjliNDQ4NTQ4MjBhMDc5YzE0N2Q2YTMzIiwidXNlcl9pZCI6N30.hU_sf0K5-G6Sp9TjGZ0uIfcN6kd445OPxlyPKVnmzcY');
+    socket.onopen = function (e) {
+      console.log('Connection established!');
+    };
+  
+    socket.onmessage = function (e) {
+      var data = JSON.parse(e.data)
+      console.log(data)
+    };
+    socket.onclose = function (e) {
+      console.log('Connection closed');
+    };
+</script>
