@@ -10,7 +10,7 @@ class LoginSerializer(TokenObtainPairSerializer):
         if self.user.is_login == True:
             raise Exception("You are login in some other device first you need to logout!!!")
         self.user.is_login = True
-        self.user.is_chatting = True
+        self.user.is_chatting = False
         self.user.save()
         data["user_data"] = {
             "id": self.user.id,

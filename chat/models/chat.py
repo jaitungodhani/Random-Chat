@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 from random_chat.behaviour import DateMixin
+from .room import Room
 
 User = get_user_model()
 
@@ -22,9 +23,16 @@ class Chat(DateMixin, models.Model):
         verbose_name=_("message"),
         max_length=200
     )
+    room = models.ForeignKey(
+        Room,
+        verbose_name=_("Room"),
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
 
     def __str__(self) -> str:
-        return self.room_name + "--" + str(self.owner.id) + "--" + str(self.message)
+        return str(self.sender.id) + "--" + str(self.receiver.id) + "--" + str(self.message)
     
     class Meta:
         ordering = ('id',)

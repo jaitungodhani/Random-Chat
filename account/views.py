@@ -13,8 +13,13 @@ from django.contrib.auth import get_user_model
 from rest_framework.permissions import AllowAny
 from rest_framework.decorators import action
 import random
-from chat.models import Chat
+from chat.models import (
+    Chat,
+    Room
+)
 from django.db.models import Q
+from chat.serializers import RoomSerialzer
+
 
 User = get_user_model()
 
@@ -37,7 +42,7 @@ class LogoutView(ViewSet):
         request.user.is_login = False
         request.user.is_chatting = False
         request.user.save()
-        Chat.objects.filter(Q(sender=request.user) | Q(receiver=request.user)).delete()
+        Room.objects.filter(Q(user_1=request.user) | Q(user_2=request.user)).delete()
         response = ResponseMsg(
             data={},
             error=False,
@@ -92,11 +97,38 @@ class UserManageView(ViewSet):
         detail=False
     )
     def random_user_select(self, request):
-        all_user = list(User.objects.filter(is_chatting=True, is_login=True).all().exclude(id=request.user.id))
-        random_user = random.choice(all_user)
+        room_obj = Room.objects.filter(Q(user_1=request.user) | Q(user_2=request.user)).first()
+
+        if room_obj:
+            random_user = User.objects.filter(Q(id = room_obj.user_1.id) | Q(id = room_obj.user_2.id)).exclude(id=request.user.id).first()
+    
+            room_serializer = RoomSerialzer(
+              room_obj
+            )
+        else:
+            all_user = list(User.objects.filter(is_chatting=False, is_login=True).all().exclude(Q(id=request.user.id) | Q(is_superuser=True)))
+            random_user = random.choice(all_user)
+            request.user.is_chatting = True
+            random_user.is_chatting= True
+            random_user.save()
+            request.user.save()
+            room_serializer = RoomSerialzer(
+            data={
+            "name": f"{request.user.id}_{random_user.id}",
+            "user_1":request.user.id,
+            "user_2":random_user.id
+            }
+            )
+            room_serializer.is_valid(raise_exception=True)
+            room_serializer.save()
+
         serializer = UserSerializer(random_user)
+        
         response = ResponseMsg(
-            data=serializer.data,
+            data={
+                "random_user":serializer.data,
+                "room_data":room_serializer.data
+            },
             error=False,
             message="Random User Get Successfully!!!!"
         )
